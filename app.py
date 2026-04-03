@@ -7,6 +7,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
+import uvicorn
 
 app = FastAPI()
 
@@ -27,7 +28,4 @@ class SurveyData(BaseModel):
 
 # model = joblib.load("models/model.pkl")
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-
+uvicorn.run(app, host="0.0.0.0", port=8000)
