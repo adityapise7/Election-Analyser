@@ -1,31 +1,26 @@
-import os
 import joblib
 import pandas as pd
-import numpy as np
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from fastapi import FastAPI
 from pydantic import BaseModel
-import uvicorn
 
 app = FastAPI()
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="template")
+class BiharVoter(BaseModel):
+    Age_Group: str
+    Gender: str
+    Geography: str
+    Education: str
+    Occupation: str
+    Caste: str
 
-class SurveyData(BaseModel):
-    region: str
-    district: str
-    geography: str
-    gender: str
-    age_band: str
-    age: float
-    caste: str
-    occupation: str
-    cm_preference: str
-    voting_reason: str
+bihar_model = joblib.load("models/Bihar_voter_prediction.pkl")
 
-model = joblib.load("models/pipe.pkl")
+@app.get("/")
+async def root():
+    return {"status": "active", "models": ["bihar"]}
 
-uvicorn.run(app, host="0.0.0.0", port=8000)
+@app.post("/bihar")
+async def predict_bihar(data: BiharVoter):
+    df = pd.DataFrame([data.model_dump()])
+    prediction = bihar_model.predict(df)[0]
+    return {"voted_party": prediction}
