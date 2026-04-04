@@ -11,11 +11,11 @@
     * **Data & ML:** Pandas, NumPy, Scikit-learn
     * **Frontend:** HTML, CSS, JavaScript, Jinja2{Template used in HTML}
 ## Installation
-    ```Bash
-    git clone https://github.com/Existencee3/Election-Analyser.git
-    cd Election-Analyser
-    python3 -m venv venv
-    source ./venv/bin/activate
-    pip install -r requirements.txt
-    uvicorn app:app --reload --port 5000
-    ```
+```Bash
+git clone https://github.com/Existencee3/Election-Analyser.git
+cd Election-Analyser
+python3 -m venv venv
+source ./venv/bin/activate
+pip install -r requirements.txt
+uvicorn app:app --reload --port 5000
+```
