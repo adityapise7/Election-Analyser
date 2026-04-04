@@ -5,6 +5,8 @@ Run with:
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import pickle, os, traceback
 import pandas as pd
@@ -18,7 +20,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-MODEL_DIR = os.path.join(os.path.dirname(__file__), "models")
+BASE_DIR   = os.path.dirname(__file__)
+MODEL_DIR  = os.path.join(BASE_DIR, "models")
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+TEMPLATE_DIR = os.path.join(BASE_DIR, "template")
+
+if os.path.exists(STATIC_DIR):
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 _model_cache: dict = {}
 
@@ -44,6 +52,13 @@ class VoterPredictionInput(BaseModel):
 
 @app.get("/")
 def root():
+    index_path = os.path.join(TEMPLATE_DIR, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path, media_type="text/html")
+    return {"status": "ok", "message": "index.html not found in template/"}
+
+@app.get("/health")
+def health():
     return {"status": "ok", "message": "Election Analyzer API is running"}
 
 @app.get("/models/status")
