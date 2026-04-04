@@ -35,7 +35,6 @@ def load_model(filename: str):
         return _model_cache[filename]
     path = os.path.join(MODEL_DIR, filename)
     
-    # Robust case-insensitive search if file doesn't exist at exact path
     if not os.path.exists(path):
         if os.path.exists(MODEL_DIR):
             for f in os.listdir(MODEL_DIR):
@@ -94,7 +93,6 @@ def bihar_voter_predict(data: VoterPredictionInput):
     if model is None:
         raise HTTPException(503, "Bihar voter prediction model not found. Place 'bihar_voter_prediction.pkl' in the models/ folder.")
     try:
-        # Create DataFrame with exact column names and values from input
         features = pd.DataFrame([{
             "Age_Group": data.Age_Group.strip(),
             "Gender": data.Gender.strip(),
@@ -107,9 +105,8 @@ def bihar_voter_predict(data: VoterPredictionInput):
         prediction = model.predict(features)[0]
         proba = None
         
-        # Access classes from the last step of the pipeline
         estimator = model
-        if hasattr(model, "steps"): # It's a Pipeline
+        if hasattr(model, "steps"): 
             estimator = model.steps[-1][1]
             
         if hasattr(estimator, "predict_proba"):
