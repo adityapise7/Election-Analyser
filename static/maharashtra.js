@@ -411,6 +411,7 @@ function showPage(name,btn){
 
 async function checkApiStatus(){
   const el=document.getElementById('model-status-indicator');
+  if(!el)return;
   el.textContent='⏳ Checking…';el.style.color='var(--ink-faint)';
   try{
     const r=await fetch('http://127.0.0.1:5000/models/status',{method:'GET',signal:AbortSignal.timeout(3000)});
@@ -437,14 +438,14 @@ async function runPrediction(){
   const btn=document.getElementById('pred-run-btn');
   const inputData={
     state:'maharashtra',
-    Age:document.getElementById('pred-age').value,
+    Age:parseInt(document.getElementById('pred-age').value, 10),
     District:document.getElementById('pred-district').value,
     Gender:document.getElementById('pred-gender').value,
     Geography:document.getElementById('pred-geography').value,
     Caste:document.getElementById('pred-caste').value,
     Occupation:document.getElementById('pred-occupation').value
   };
-  if(Object.entries(inputData).filter(([k])=>k!=='state').some(([,v])=>!v)){showResultError('Please fill in all demographic fields.');return;}
+  if(!inputData.Age||isNaN(inputData.Age)||Object.entries(inputData).filter(([k])=>k!=='state'&&k!=='Age').some(([,v])=>!v)){showResultError('Please fill in all demographic fields.');return;}
   btn.textContent='Analyzing…';btn.disabled=true;
   try{
     const response=await fetch('http://127.0.0.1:5000/maharashtra/predict_voter',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(inputData)});
