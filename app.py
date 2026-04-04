@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
+from typing import Optional
 import pickle, os, traceback
 import pandas as pd
 
@@ -49,13 +50,23 @@ def load_model(filename: str):
     _model_cache[filename] = model
     return model
 
+
 class VoterPredictionInput(BaseModel):
     state: str
     Age_Group: str
     Gender: str
     Geography: str
     Caste: str
-    Education: str
+    Education: Optional[str] = None
+    Occupation: str
+
+class MahaVoterPredictionInput(BaseModel):
+    state: str
+    Age: int
+    District: str
+    Gender: str
+    Geography: str
+    Caste: str
     Occupation: str
 
 @app.get("/")
@@ -97,7 +108,7 @@ def bihar_voter_predict(data: VoterPredictionInput):
             "Age_Group": data.Age_Group.strip(),
             "Gender": data.Gender.strip(),
             "Geography": data.Geography.strip(),
-            "Education": data.Education.strip(),
+            "Education": (data.Education.strip() if data.Education else ""),
             "Occupation": data.Occupation.strip(),
             "Caste": data.Caste.strip()
         }
@@ -121,15 +132,16 @@ def bihar_voter_predict(data: VoterPredictionInput):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/maharashtra/predict_voter")
-def maha_voter_predict(data: VoterPredictionInput):
+def maha_voter_predict(data: MahaVoterPredictionInput):
     model = load_model("maharashtra_voter_prediction.pkl")
     if model is None:
         raise HTTPException(status_code=503, detail="Maharashtra model not found")
     try:
         input_dict = {
-            "geography": data.Geography.strip(),
+            "age": data.Age,
             "gender": data.Gender.strip(),
-            "age_band": data.Age_Group.strip(),
+            "district": data.District.strip(),
+            "geography": data.Geography.strip(),
             "caste": data.Caste.strip(),
             "occupation": data.Occupation.strip()
         }
@@ -138,7 +150,7 @@ def maha_voter_predict(data: VoterPredictionInput):
         elif input_dict["caste"] == "General":
             input_dict["caste"] = "Other General"
         
-        columns = ["geography", "gender", "age_band", "caste", "occupation"]
+        columns = ["age", "gender", "district", "geography", "caste", "occupation"]
         features = pd.DataFrame([input_dict])[columns]
         prediction = model.predict(features)[0]
         proba = None
